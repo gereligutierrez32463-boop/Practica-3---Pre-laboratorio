@@ -1,0 +1,1584 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pre-Laboratorio · Ensayos del Generador Sincrónico</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Source+Sans+3:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
+
+/* ── RESET & ROOT ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:        #0d1117;
+  --bg2:       #161b22;
+  --bg3:       #1c2333;
+  --card:      #21262d;
+  --border:    #30363d;
+  --accent:    #e6a817;
+  --accent2:   #f0c040;
+  --teal:      #39d0c0;
+  --red:       #ff6b6b;
+  --blue:      #58a6ff;
+  --green:     #3fb950;
+  --purple:    #c084fc;
+  --text:      #e6edf3;
+  --text2:     #8b949e;
+  --text3:     #c9d1d9;
+  --serif:     'Playfair Display', serif;
+  --sans:      'Source Sans 3', sans-serif;
+  --mono:      'JetBrains Mono', monospace;
+  --r:         12px;
+  --r2:        8px;
+}
+
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.7;
+  min-height: 100vh;
+}
+
+/* ── PROGRESS BAR ── */
+#progress-bar {
+  position: fixed; top: 0; left: 0;
+  height: 3px; background: var(--accent);
+  z-index: 9999; transition: width 0.2s;
+  box-shadow: 0 0 10px var(--accent);
+}
+
+/* ── NAV ── */
+nav {
+  position: fixed; top: 3px; left: 0; right: 0;
+  background: rgba(13,17,23,0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  z-index: 100; padding: 0 2rem;
+  display: flex; align-items: center; gap: 0;
+}
+.nav-brand {
+  font-family: var(--serif); font-size: 1rem; font-weight: 700;
+  color: var(--accent); padding: 1rem 0; margin-right: auto;
+  white-space: nowrap;
+}
+.nav-links { display: flex; gap: 0; overflow-x: auto; }
+.nav-links a {
+  color: var(--text2); text-decoration: none;
+  font-size: 0.78rem; font-weight: 600; letter-spacing: 0.04em;
+  padding: 0.9rem 0.85rem; text-transform: uppercase;
+  transition: color 0.2s; white-space: nowrap;
+}
+.nav-links a:hover, .nav-links a.active { color: var(--accent); }
+
+/* ── HERO ── */
+.hero {
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  justify-content: center; align-items: center;
+  text-align: center; padding: 6rem 2rem 4rem;
+  position: relative; overflow: hidden;
+}
+.hero-bg {
+  position: absolute; inset: 0; z-index: 0;
+  background: radial-gradient(ellipse 80% 60% at 50% 40%,
+    rgba(230,168,23,0.07) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 50% at 80% 70%,
+    rgba(57,208,192,0.05) 0%, transparent 60%);
+}
+.hero-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(48,54,61,0.3) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(48,54,61,0.3) 1px, transparent 1px);
+  background-size: 50px 50px;
+  mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+}
+.hero-content { position: relative; z-index: 1; max-width: 860px; }
+.hero-badge {
+  display: inline-block;
+  background: rgba(230,168,23,0.12);
+  border: 1px solid rgba(230,168,23,0.3);
+  color: var(--accent); font-size: 0.75rem; font-weight: 700;
+  letter-spacing: 0.15em; text-transform: uppercase;
+  padding: 0.4rem 1.2rem; border-radius: 100px; margin-bottom: 1.5rem;
+}
+.hero h1 {
+  font-family: var(--serif); font-size: clamp(2.4rem, 6vw, 4.2rem);
+  font-weight: 900; line-height: 1.1; margin-bottom: 1rem;
+  background: linear-gradient(135deg, var(--accent2), var(--accent), #c47a00);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.hero h2 {
+  font-family: var(--serif); font-size: clamp(1.2rem, 3vw, 1.7rem);
+  font-weight: 400; color: var(--text3); margin-bottom: 2rem;
+}
+.hero-meta {
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 1.5rem;
+  font-size: 0.85rem; color: var(--text2); margin-bottom: 2.5rem;
+}
+.hero-meta span { display: flex; align-items: center; gap: 0.4rem; }
+.hero-cta {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  background: var(--accent); color: #000; font-weight: 700;
+  font-size: 0.9rem; padding: 0.85rem 2rem; border-radius: 100px;
+  text-decoration: none; transition: transform 0.2s, box-shadow 0.2s;
+  letter-spacing: 0.03em;
+}
+.hero-cta:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(230,168,23,0.35); }
+
+/* ── LAYOUT ── */
+main { max-width: 1000px; margin: 0 auto; padding: 0 1.5rem 4rem; }
+section { padding-top: 5rem; }
+
+/* ── SECTION HEADERS ── */
+.section-header {
+  display: flex; align-items: center; gap: 1rem;
+  margin-bottom: 2.5rem; padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+.section-num {
+  background: var(--accent); color: #000;
+  width: 2.5rem; height: 2.5rem; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 900; font-size: 0.9rem; flex-shrink: 0;
+}
+.section-header h2 {
+  font-family: var(--serif); font-size: 1.8rem; font-weight: 700;
+  color: var(--text);
+}
+.section-header p { font-size: 0.85rem; color: var(--text2); margin-top: 0.2rem; }
+
+/* ── CARDS ── */
+.card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 1.5rem;
+  margin-bottom: 1.25rem;
+}
+.card-title {
+  font-family: var(--serif); font-size: 1.15rem; font-weight: 700;
+  color: var(--accent2); margin-bottom: 0.75rem;
+  display: flex; align-items: center; gap: 0.6rem;
+}
+.card-title .icon { font-size: 1.3rem; }
+
+/* ── THEORY GRID ── */
+.theory-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+@media(max-width:680px){ .theory-grid { grid-template-columns: 1fr; } }
+
+/* ── HIGHLIGHT BOX ── */
+.highlight {
+  background: linear-gradient(135deg, rgba(230,168,23,0.08), rgba(240,192,64,0.05));
+  border-left: 3px solid var(--accent);
+  border-radius: 0 var(--r2) var(--r2) 0;
+  padding: 1rem 1.25rem; margin: 1rem 0;
+}
+.highlight.teal { background: rgba(57,208,192,0.07); border-color: var(--teal); }
+.highlight.red  { background: rgba(255,107,107,0.07); border-color: var(--red); }
+.highlight.blue { background: rgba(88,166,255,0.07); border-color: var(--blue); }
+.highlight.green{ background: rgba(63,185,80,0.07);  border-color: var(--green); }
+.highlight.purple{ background: rgba(192,132,252,0.07); border-color: var(--purple); }
+.highlight strong { color: var(--accent2); }
+.highlight.teal strong { color: var(--teal); }
+.highlight.red strong  { color: var(--red); }
+.highlight.blue strong { color: var(--blue); }
+.highlight.green strong{ color: var(--green); }
+.highlight.purple strong{ color: var(--purple); }
+
+/* ── EQUATION BOX ── */
+.eq-box {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--r2); padding: 1rem 1.5rem;
+  font-family: var(--mono); font-size: 1rem;
+  text-align: center; margin: 1rem 0; overflow-x: auto;
+  color: var(--teal); letter-spacing: 0.02em;
+}
+.eq-box .eq-label {
+  display: block; font-size: 0.7rem; color: var(--text2);
+  font-family: var(--sans); text-transform: uppercase;
+  letter-spacing: 0.1em; margin-bottom: 0.5rem;
+}
+.eq-big { font-size: 1.3rem; color: var(--accent2); }
+
+/* ── SVG DIAGRAMS ── */
+.diagram-wrap {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--r); overflow: hidden; margin: 1.25rem 0;
+}
+.diagram-title {
+  background: var(--bg3); padding: 0.6rem 1.25rem;
+  font-size: 0.78rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.1em; color: var(--text2);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.diagram-title span { color: var(--accent); }
+.diagram-wrap svg { display: block; width: 100%; height: auto; }
+
+/* ── STEPS ── */
+.steps { counter-reset: step; list-style: none; }
+.steps li {
+  counter-increment: step;
+  display: flex; gap: 1rem; align-items: flex-start;
+  padding: 1rem 0; border-bottom: 1px solid rgba(48,54,61,0.5);
+}
+.steps li:last-child { border-bottom: none; }
+.steps li::before {
+  content: counter(step);
+  background: var(--bg3); border: 1px solid var(--border);
+  color: var(--accent); font-weight: 700; font-size: 0.85rem;
+  width: 2rem; height: 2rem; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; margin-top: 0.1rem;
+}
+
+/* ── TABS ── */
+.tab-nav {
+  display: flex; gap: 0.25rem; flex-wrap: wrap;
+  border-bottom: 1px solid var(--border); margin-bottom: 1.5rem;
+}
+.tab-btn {
+  background: none; border: none; cursor: pointer;
+  color: var(--text2); font-family: var(--sans); font-size: 0.88rem;
+  font-weight: 600; padding: 0.75rem 1.25rem;
+  border-bottom: 2px solid transparent;
+  transition: color 0.2s; margin-bottom: -1px;
+}
+.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+.tab-btn:hover { color: var(--text); }
+.tab-pane { display: none; }
+.tab-pane.active { display: block; }
+
+/* ── QUIZ ── */
+.quiz-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 1.5rem; margin-bottom: 1.25rem;
+}
+.quiz-q {
+  font-weight: 700; font-size: 1rem; margin-bottom: 1rem;
+  line-height: 1.4;
+}
+.quiz-opts { display: flex; flex-direction: column; gap: 0.6rem; }
+.quiz-opt {
+  background: var(--bg2); border: 1.5px solid var(--border);
+  border-radius: var(--r2); padding: 0.75rem 1rem;
+  cursor: pointer; font-size: 0.9rem;
+  transition: border-color 0.2s, background 0.2s;
+  display: flex; align-items: center; gap: 0.75rem;
+}
+.quiz-opt:hover { border-color: var(--accent); background: rgba(230,168,23,0.06); }
+.quiz-opt.correct { border-color: var(--green) !important; background: rgba(63,185,80,0.12) !important; }
+.quiz-opt.wrong   { border-color: var(--red) !important;   background: rgba(255,107,107,0.12) !important; }
+.quiz-opt .opt-letter {
+  width: 1.6rem; height: 1.6rem; border-radius: 50%;
+  background: var(--bg3); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 0.75rem; flex-shrink: 0;
+  color: var(--text2);
+}
+.quiz-opt.correct .opt-letter { background: var(--green); color: #000; border-color: var(--green); }
+.quiz-opt.wrong   .opt-letter { background: var(--red);   color: #fff; border-color: var(--red); }
+.quiz-feedback {
+  display: none; margin-top: 0.8rem; padding: 0.75rem 1rem;
+  border-radius: var(--r2); font-size: 0.88rem; line-height: 1.5;
+}
+.quiz-feedback.show { display: block; }
+.quiz-feedback.ok  { background: rgba(63,185,80,0.12);  border-left: 3px solid var(--green); color: var(--text3); }
+.quiz-feedback.bad { background: rgba(255,107,107,0.12); border-left: 3px solid var(--red);   color: var(--text3); }
+
+/* ── CALCULATOR ── */
+.calc-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 1rem; margin-bottom: 1rem;
+}
+@media(max-width:580px){ .calc-grid { grid-template-columns: 1fr; } }
+.calc-field label {
+  display: block; font-size: 0.78rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--text2); margin-bottom: 0.4rem;
+}
+.calc-field input, .calc-field select {
+  width: 100%; background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--r2); padding: 0.6rem 0.9rem;
+  color: var(--text); font-family: var(--mono); font-size: 0.95rem;
+  outline: none; transition: border-color 0.2s;
+}
+.calc-field input:focus, .calc-field select:focus { border-color: var(--accent); }
+.btn-primary {
+  background: var(--accent); color: #000; font-weight: 700;
+  font-size: 0.9rem; padding: 0.7rem 1.75rem;
+  border: none; border-radius: 100px; cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+  font-family: var(--sans);
+}
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(230,168,23,0.3); }
+.result-box {
+  background: var(--bg2); border: 1px solid var(--green);
+  border-radius: var(--r2); padding: 1rem 1.25rem; margin-top: 1rem;
+  font-family: var(--mono); color: var(--green); font-size: 0.9rem;
+  line-height: 2;
+}
+.result-box .r-label { color: var(--text2); font-size: 0.8rem; }
+
+/* ── CHART ── */
+#occ-canvas { background: var(--bg2); border-radius: var(--r2); display: block; width: 100%; }
+
+/* ── PROFESSOR Q&A ── */
+.gereli-hero {
+  background: linear-gradient(135deg, #1a1400, #1c1505);
+  border: 1px solid rgba(230,168,23,0.3);
+  border-radius: var(--r); padding: 2rem; margin-bottom: 1.5rem;
+  display: flex; align-items: center; gap: 1.5rem;
+  flex-wrap: wrap;
+}
+.gereli-avatar {
+  width: 80px; height: 80px; border-radius: 50%; flex-shrink: 0;
+  background: linear-gradient(135deg, var(--accent), #c47a00);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--serif); font-size: 2rem; font-weight: 900; color: #000;
+  border: 3px solid var(--accent2); box-shadow: 0 0 24px rgba(230,168,23,0.25);
+}
+.gereli-info h3 { font-family: var(--serif); font-size: 1.35rem; color: var(--accent2); }
+.gereli-info p { font-size: 0.88rem; color: var(--text2); margin-top: 0.2rem; }
+.gereli-info .badge {
+  display: inline-block; background: rgba(230,168,23,0.15);
+  border: 1px solid rgba(230,168,23,0.3); color: var(--accent);
+  font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; padding: 0.2rem 0.75rem;
+  border-radius: 100px; margin-top: 0.5rem;
+}
+.qa-search {
+  width: 100%; background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 100px; padding: 0.75rem 1.25rem;
+  color: var(--text); font-family: var(--sans); font-size: 0.95rem;
+  outline: none; margin-bottom: 1.25rem;
+  transition: border-color 0.2s;
+}
+.qa-search:focus { border-color: var(--accent); }
+.qa-item {
+  border: 1px solid var(--border); border-radius: var(--r2);
+  margin-bottom: 0.6rem; overflow: hidden;
+  transition: border-color 0.2s;
+}
+.qa-item:hover { border-color: rgba(230,168,23,0.3); }
+.qa-item.hidden { display: none; }
+.qa-q {
+  background: var(--card); padding: 1rem 1.25rem;
+  cursor: pointer; display: flex; align-items: center;
+  justify-content: space-between; gap: 1rem;
+  font-weight: 600; font-size: 0.92rem;
+  transition: background 0.2s;
+}
+.qa-q:hover { background: var(--bg3); }
+.qa-q .qa-tag {
+  font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.08em; padding: 0.2rem 0.6rem; border-radius: 100px;
+  flex-shrink: 0;
+}
+.qa-q .arrow { color: var(--text2); transition: transform 0.25s; font-size: 0.75rem; flex-shrink: 0; }
+.qa-item.open .qa-q .arrow { transform: rotate(180deg); }
+.qa-a {
+  background: var(--bg2); padding: 0 1.25rem;
+  max-height: 0; overflow: hidden;
+  transition: max-height 0.35s ease, padding 0.25s;
+  font-size: 0.9rem; color: var(--text3); line-height: 1.7;
+}
+.qa-item.open .qa-a { max-height: 600px; padding: 1rem 1.25rem; }
+.qa-a .eq { font-family: var(--mono); color: var(--teal); background: var(--bg3); padding: 0.15rem 0.5rem; border-radius: 4px; }
+
+/* ── TABLE ── */
+table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+th { background: var(--bg3); color: var(--text2); font-weight: 700;
+     text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.75rem;
+     padding: 0.7rem 0.9rem; border: 1px solid var(--border); text-align: left; }
+td { padding: 0.65rem 0.9rem; border: 1px solid var(--border); color: var(--text3); }
+tr:nth-child(even) td { background: rgba(22,27,34,0.5); }
+
+/* ── BADGES ── */
+.tag {
+  display: inline-block; font-size: 0.72rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  padding: 0.2rem 0.65rem; border-radius: 100px; margin: 0.1rem;
+}
+.tag-occ   { background: rgba(63,185,80,0.15);  color: var(--green);  border: 1px solid rgba(63,185,80,0.3); }
+.tag-scc   { background: rgba(88,166,255,0.15); color: var(--blue);   border: 1px solid rgba(88,166,255,0.3); }
+.tag-dc    { background: rgba(192,132,252,0.15);color: var(--purple); border: 1px solid rgba(192,132,252,0.3); }
+.tag-warn  { background: rgba(255,107,107,0.15);color: var(--red);    border: 1px solid rgba(255,107,107,0.3); }
+.tag-tip   { background: rgba(230,168,23,0.12); color: var(--accent); border: 1px solid rgba(230,168,23,0.3); }
+.tag-teoria{ background: rgba(57,208,192,0.12); color: var(--teal);   border: 1px solid rgba(57,208,192,0.3); }
+
+/* ── FOOTER ── */
+footer {
+  margin-top: 5rem; padding: 2.5rem 1.5rem;
+  border-top: 1px solid var(--border);
+  text-align: center; font-size: 0.82rem; color: var(--text2);
+}
+footer strong { color: var(--accent); }
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.card, .quiz-card, .diagram-wrap, .qa-item {
+  animation: fadeUp 0.4s ease both;
+}
+
+/* ── PRINT ── */
+@media print {
+  nav, #progress-bar, .hero-cta, .tab-nav, .btn-primary { display: none !important; }
+  .hero { min-height: auto; padding: 2rem; }
+  .card, .quiz-card { break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+
+<div id="progress-bar" style="width:0%"></div>
+
+<!-- ══════════ NAV ══════════ -->
+<nav>
+  <div class="nav-brand">⚡ Máquinas Eléctricas II</div>
+  <div class="nav-links">
+    <a href="#teoria" class="nav-link">Teoría</a>
+    <a href="#ensayos" class="nav-link">Ensayos</a>
+    <a href="#circuitos" class="nav-link">Circuitos</a>
+    <a href="#calculos" class="nav-link">Cálculos</a>
+    <a href="#actividades" class="nav-link">Actividades</a>
+    <a href="#gereli" class="nav-link">Profa. Gereli</a>
+  </div>
+</nav>
+
+<!-- ══════════ HERO ══════════ -->
+<header class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-content">
+    <div class="hero-badge">🎓 Pre-Laboratorio · Práctica N° 3</div>
+    <h1>Ensayos del<br>Generador Sincrónico</h1>
+    <h2>Máquinas Eléctricas II — LUZ</h2>
+    <div class="hero-meta">
+      <span>📖 Ref. Chapman Cap. 4–5</span>
+      <span>⚙️ IEEE Std 115</span>
+      <span>👩‍🏫 Prof. Gereli Gutiérrez</span>
+      <span>🔌 Departamento de Potencia</span>
+    </div>
+    <a href="#teoria" class="hero-cta">Comenzar Pre-Lab ↓</a>
+  </div>
+</header>
+
+<main>
+
+<!-- ══════════ 1 · TEORÍA ══════════ -->
+<section id="teoria">
+  <div class="section-header">
+    <div class="section-num">1</div>
+    <div>
+      <h2>Fundamentos del Generador Sincrónico</h2>
+      <p>Chapman, Cap. 4 · Base teórica necesaria para la práctica</p>
+    </div>
+  </div>
+
+  <div class="highlight">
+    <strong>¿Qué es un generador sincrónico?</strong><br>
+    Es una máquina de CA que convierte energía mecánica en energía eléctrica. El rotor gira a velocidad constante (velocidad sincrónica) produciendo un campo magnético giratorio que induce tensión en el devanado del estátor. Se llama "sincrónico" porque la frecuencia de la tensión generada está directamente vinculada a la velocidad de rotación.
+  </div>
+
+  <!-- Relación velocidad-frecuencia -->
+  <div class="card">
+    <div class="card-title"><span class="icon">⚡</span> Relación Velocidad — Frecuencia</div>
+    <p style="margin-bottom:0.75rem">La frecuencia eléctrica depende de cuántos pares de polos tiene la máquina y a qué velocidad gira:</p>
+    <div class="eq-box">
+      <span class="eq-label">Frecuencia eléctrica</span>
+      <span class="eq-big">f = (n × P) / 120</span>
+    </div>
+    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:0.75rem; font-size:0.88rem; text-align:center; margin-top:0.75rem">
+      <div class="highlight blue" style="margin:0"><strong>f</strong><br>Frecuencia (Hz)</div>
+      <div class="highlight teal" style="margin:0"><strong>n</strong><br>Velocidad (rpm)</div>
+      <div class="highlight purple" style="margin:0"><strong>P</strong><br>N° de polos</div>
+    </div>
+    <div class="highlight blue" style="margin-top:1rem">
+      <strong>Ejemplo:</strong> En Venezuela la red es de 60 Hz. Un generador de 4 polos debe girar a: n = 120×60/4 = <strong>1800 rpm</strong>
+    </div>
+  </div>
+
+  <!-- Circuito equivalente -->
+  <div class="card">
+    <div class="card-title"><span class="icon">🔁</span> Circuito Equivalente por Fase (Modelo de Chapman)</div>
+    <p>El generador sincrónico se modela con una fuente de FEM interna (E<sub>A</sub>) en serie con la impedancia sincrónica:</p>
+    
+    <!-- Diagrama SVG del circuito equivalente -->
+    <div class="diagram-wrap" style="margin:1rem 0">
+      <div class="diagram-title">Circuito equivalente — Una fase <span>Modelo simplificado (Rs ≈ 0)</span></div>
+      <svg viewBox="0 0 600 200" xmlns="http://www.w3.org/2000/svg" style="padding:12px">
+        <defs>
+          <marker id="arr" markerWidth="8" markerHeight="6" refX="6" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#8b949e"/>
+          </marker>
+        </defs>
+        <!-- Fuente EA -->
+        <circle cx="80" cy="100" r="30" fill="none" stroke="#e6a817" stroke-width="2"/>
+        <text x="80" y="95" fill="#e6a817" font-size="12" font-family="JetBrains Mono,monospace" text-anchor="middle">~</text>
+        <text x="80" y="110" fill="#e6a817" font-size="10" font-family="JetBrains Mono,monospace" text-anchor="middle">E_A</text>
+        <!-- Línea superior -->
+        <line x1="80" y1="70" x2="80" y2="40" stroke="#8b949e" stroke-width="2"/>
+        <line x1="80" y1="40" x2="200" y2="40" stroke="#8b949e" stroke-width="2"/>
+        <!-- Resistencia Ra -->
+        <rect x="200" y="28" width="60" height="24" rx="4" fill="#21262d" stroke="#c084fc" stroke-width="1.5"/>
+        <text x="230" y="44" fill="#c084fc" font-size="11" font-family="JetBrains Mono,monospace" text-anchor="middle">Ra</text>
+        <!-- Línea después Ra -->
+        <line x1="260" y1="40" x2="320" y2="40" stroke="#8b949e" stroke-width="2"/>
+        <!-- Bobina Xs -->
+        <path d="M320,40 Q330,20 340,40 Q350,20 360,40 Q370,20 380,40" fill="none" stroke="#58a6ff" stroke-width="2"/>
+        <text x="350" y="22" fill="#58a6ff" font-size="11" font-family="JetBrains Mono,monospace" text-anchor="middle">Xs</text>
+        <!-- Línea después bobina -->
+        <line x1="380" y1="40" x2="480" y2="40" stroke="#8b949e" stroke-width="2"/>
+        <!-- Carga (terminal) -->
+        <rect x="480" y="28" width="60" height="24" rx="4" fill="#21262d" stroke="#3fb950" stroke-width="1.5" stroke-dasharray="4,2"/>
+        <text x="510" y="38" fill="#3fb950" font-size="9" font-family="Source Sans 3,sans-serif" text-anchor="middle">Carga</text>
+        <text x="510" y="50" fill="#3fb950" font-size="9" font-family="Source Sans 3,sans-serif" text-anchor="middle">Vφ</text>
+        <!-- Línea inferior -->
+        <line x1="80" y1="130" x2="80" y2="160" stroke="#8b949e" stroke-width="2"/>
+        <line x1="80" y1="160" x2="510" y2="160" stroke="#8b949e" stroke-width="2"/>
+        <line x1="510" y1="160" x2="510" y2="52" stroke="#8b949e" stroke-width="2"/>
+        <!-- Corriente Ia -->
+        <line x1="400" y1="40" x2="440" y2="40" stroke="#39d0c0" stroke-width="2" marker-end="url(#arr)"/>
+        <text x="420" y="32" fill="#39d0c0" font-size="11" font-family="JetBrains Mono,monospace" text-anchor="middle">Ia →</text>
+        <!-- Etiqueta ecuación -->
+        <text x="300" y="185" fill="#8b949e" font-size="11" font-family="JetBrains Mono,monospace" text-anchor="middle">V_φ = E_A − R_a·I_a − jX_s·I_a</text>
+      </svg>
+    </div>
+
+    <div class="eq-box">
+      <span class="eq-label">Ecuación de tensión del generador (fasorial)</span>
+      <span class="eq-big">V<sub>φ</sub> = E<sub>A</sub> − R<sub>a</sub>·I<sub>a</sub> − jX<sub>s</sub>·I<sub>a</sub></span>
+    </div>
+
+    <div class="theory-grid" style="margin-top:1rem">
+      <div class="highlight green" style="margin:0">
+        <strong>E<sub>A</sub></strong> — FEM interna generada por el flujo del rotor. Depende de la velocidad y de la corriente de campo I<sub>f</sub>.
+      </div>
+      <div class="highlight purple" style="margin:0">
+        <strong>R<sub>a</sub></strong> — Resistencia del devanado de armadura. Pequeña pero medida con el ensayo DC.
+      </div>
+      <div class="highlight blue" style="margin:0">
+        <strong>X<sub>s</sub></strong> — Reactancia sincrónica. Representa la reactancia de dispersión + efecto de la FEM de reacción de armadura.
+      </div>
+      <div class="highlight teal" style="margin:0">
+        <strong>V<sub>φ</sub></strong> — Tensión por fase en los terminales. En vacío V<sub>φ</sub> = E<sub>A</sub>.
+      </div>
+    </div>
+  </div>
+
+  <!-- Diagrama fasorial -->
+  <div class="card">
+    <div class="card-title"><span class="icon">📐</span> Diagrama Fasorial — ¿Por qué importa?</div>
+    <p style="margin-bottom:1rem">El diagrama fasorial visualiza la relación entre las tensiones y corriente en función del tipo de carga:</p>
+    <div class="diagram-wrap">
+      <div class="diagram-title">Diagramas fasoriales: resistiva, inductiva, capacitiva <span>El ángulo θ es el factor de potencia</span></div>
+      <svg viewBox="0 0 600 210" xmlns="http://www.w3.org/2000/svg" style="padding:10px">
+        <!-- Resistiva (FP=1) -->
+        <text x="100" y="20" fill="#3fb950" font-size="11" text-anchor="middle" font-family="Source Sans 3,sans-serif" font-weight="700">FP = 1 (Resistiva)</text>
+        <line x1="50" y1="120" x2="150" y2="120" stroke="#3fb950" stroke-width="2.5" marker-end="url(#arr)"/>
+        <text x="100" y="134" fill="#3fb950" font-size="9" text-anchor="middle" font-family="JetBrains Mono,monospace">V_φ</text>
+        <line x1="150" y1="120" x2="158" y2="112" stroke="#c084fc" stroke-width="2" marker-end="url(#arr)"/>
+        <text x="162" y="110" fill="#c084fc" font-size="8" font-family="JetBrains Mono,monospace">jXs·Ia</text>
+        <line x1="50" y1="120" x2="158" y2="112" stroke="#e6a817" stroke-width="2.5" marker-end="url(#arr)"/>
+        <text x="70" y="108" fill="#e6a817" font-size="10" font-family="JetBrains Mono,monospace">E_A</text>
+        <line x1="50" y1="120" x2="75" y2="100" stroke="#39d0c0" stroke-width="1.5" stroke-dasharray="3,2" marker-end="url(#arr)"/>
+        <text x="55" y="95" fill="#39d0c0" font-size="8" font-family="JetBrains Mono,monospace">Ia</text>
+
+        <!-- Inductiva (FP retrasado) -->
+        <text x="300" y="20" fill="#58a6ff" font-size="11" text-anchor="middle" font-family="Source Sans 3,sans-serif" font-weight="700">FP retrasado (Inductiva)</text>
+        <line x1="250" y1="130" x2="350" y2="130" stroke="#58a6ff" stroke-width="2.5" marker-end="url(#arr)"/>
+        <text x="300" y="144" fill="#58a6ff" font-size="9" text-anchor="middle" font-family="JetBrains Mono,monospace">V_φ</text>
+        <line x1="250" y1="130" x2="265" y2="100" stroke="#39d0c0" stroke-width="1.5" stroke-dasharray="3,2" marker-end="url(#arr)"/>
+        <text x="248" y="95" fill="#39d0c0" font-size="8" font-family="JetBrains Mono,monospace">Ia</text>
+        <line x1="350" y1="130" x2="370" y2="85" stroke="#c084fc" stroke-width="2" marker-end="url(#arr)"/>
+        <text x="378" y="80" fill="#c084fc" font-size="8" font-family="JetBrains Mono,monospace">jXs·Ia</text>
+        <line x1="250" y1="130" x2="370" y2="85" stroke="#e6a817" stroke-width="2.5" marker-end="url(#arr)"/>
+        <text x="290" y="95" fill="#e6a817" font-size="10" font-family="JetBrains Mono,monospace">E_A</text>
+        <text x="310" y="118" fill="#ff6b6b" font-size="9" font-family="JetBrains Mono,monospace">|E_A|↑</text>
+
+        <!-- Capacitiva (FP adelantado) -->
+        <text x="510" y="20" fill="#ff6b6b" font-size="11" text-anchor="middle" font-family="Source Sans 3,sans-serif" font-weight="700">FP adelantado (Cap.)</text>
+        <line x1="460" y1="120" x2="560" y2="120" stroke="#ff6b6b" stroke-width="2.5" marker-end="url(#arr)"/>
+        <text x="510" y="134" fill="#ff6b6b" font-size="9" text-anchor="middle" font-family="JetBrains Mono,monospace">V_φ</text>
+        <line x1="460" y1="120" x2="485" y2="148" stroke="#39d0c0" stroke-width="1.5" stroke-dasharray="3,2" marker-end="url(#arr)"/>
+        <text x="466" y="162" fill="#39d0c0" font-size="8" font-family="JetBrains Mono,monospace">Ia</text>
+        <line x1="560" y1="120" x2="578" y2="155" stroke="#c084fc" stroke-width="2" marker-end="url(#arr)"/>
+        <text x="583" y="158" fill="#c084fc" font-size="8" font-family="JetBrains Mono,monospace">jXs·Ia</text>
+        <line x1="460" y1="120" x2="578" y2="155" stroke="#e6a817" stroke-width="2.5" marker-end="url(#arr)"/>
+        <text x="488" y="155" fill="#e6a817" font-size="10" font-family="JetBrains Mono,monospace">E_A</text>
+        <text x="530" y="125" fill="#3fb950" font-size="9" font-family="JetBrains Mono,monospace">|E_A|↓</text>
+      </svg>
+    </div>
+    <div class="highlight">
+      <strong>Observación clave:</strong> Con carga inductiva, E<sub>A</sub> debe ser mayor que V<sub>φ</sub> para mantener la tensión nominal. Con carga capacitiva, E<sub>A</sub> puede ser menor. Esto se controla ajustando la corriente de campo I<sub>f</sub>.
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 2 · ENSAYOS ══════════ -->
+<section id="ensayos">
+  <div class="section-header">
+    <div class="section-num">2</div>
+    <div>
+      <h2>Los Tres Ensayos del Generador</h2>
+      <p>OCC · SCC · Ensayo de Resistencia DC — Teoría y propósito</p>
+    </div>
+  </div>
+
+  <div class="tab-nav">
+    <button class="tab-btn active" onclick="showTab('occ',this)">🟢 Ensayo en Vacío (OCC)</button>
+    <button class="tab-btn" onclick="showTab('scc',this)">🔵 Ensayo en CC (SCC)</button>
+    <button class="tab-btn" onclick="showTab('dc',this)">🟣 Ensayo DC</button>
+    <button class="tab-btn" onclick="showTab('zs',this)">🟡 Cálculo de Z<sub>s</sub></button>
+  </div>
+
+  <!-- TAB OCC -->
+  <div id="tab-occ" class="tab-pane active">
+    <div class="card">
+      <div class="card-title">
+        <span class="icon">🟢</span> Ensayo en Vacío — Open Circuit Characteristic (OCC)
+        <span class="tag tag-occ">OCC</span>
+      </div>
+      <div class="highlight green">
+        <strong>¿Qué se mide?</strong> La tensión en terminales V<sub>t</sub> (o V<sub>φ</sub>) en función de la corriente de campo I<sub>f</sub>, con el generador girando a velocidad sincrónica y <strong>sin carga</strong> (terminales abiertos). En este caso V<sub>φ</sub> = E<sub>A</sub>.
+      </div>
+      <p style="margin:1rem 0">La curva OCC tiene tres regiones características:</p>
+      <div class="theory-grid">
+        <div>
+          <div class="highlight teal" style="margin:0 0 0.75rem 0">
+            <strong>① Zona lineal:</strong> Bajos valores de I<sub>f</sub>. El flujo magnético es proporcional a la corriente. E<sub>A</sub> ∝ I<sub>f</sub>.
+          </div>
+          <div class="highlight" style="margin:0 0 0.75rem 0">
+            <strong>② Rodilla (knee):</strong> Punto donde el núcleo empieza a saturarse. Los generadores suelen diseñarse para operar cerca de este punto.
+          </div>
+          <div class="highlight red" style="margin:0">
+            <strong>③ Zona saturada:</strong> Altos valores de I<sub>f</sub>. El hierro se satura; aumentar I<sub>f</sub> produce poco aumento de tensión.
+          </div>
+        </div>
+        <div class="diagram-wrap" style="margin:0">
+          <div class="diagram-title">Curva OCC — Magnetización <span>Histéresis</span></div>
+          <canvas id="occ-canvas" height="200"></canvas>
+        </div>
+      </div>
+      <div class="highlight blue" style="margin-top:1rem">
+        <strong>Histéresis:</strong> El manual indica medir un ciclo ascendente y descendente. Por histéresis magnética, la curva de bajada está ligeramente por encima de la de subida. Este efecto es propio del material ferromagnético del núcleo.
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB SCC -->
+  <div id="tab-scc" class="tab-pane">
+    <div class="card">
+      <div class="card-title">
+        <span class="icon">🔵</span> Ensayo en Cortocircuito — Short Circuit Characteristic (SCC)
+        <span class="tag tag-scc">SCC</span>
+        <span class="tag tag-warn">⚠ Peligro</span>
+      </div>
+      <div class="highlight red">
+        <strong>⚠ PRECAUCIÓN:</strong> Antes de arrancar, verificar que la fuente de campo esté en <strong>0 V</strong>. Los terminales deben estar cortocircuitados mediante amperímetros. Aumentar I<sub>f</sub> gradualmente.
+      </div>
+      <div class="highlight blue" style="margin-top:0.75rem">
+        <strong>¿Qué se mide?</strong> La corriente de armadura I<sub>a</sub> en función de I<sub>f</sub>, con los terminales en cortocircuito (V<sub>t</sub> = 0). Dado que V<sub>t</sub> = 0, toda la E<sub>A</sub> cae en la impedancia sincrónica: <span style="font-family:var(--mono); color:var(--teal)">I<sub>sc</sub> = E<sub>A</sub> / Z<sub>s</sub></span>
+      </div>
+      <p style="margin:1rem 0">La curva SCC es esencialmente <strong>lineal</strong> porque la saturación magnética es menor (los flujos de armadura se oponen al flujo del rotor bajo cortocircuito):</p>
+      <div class="eq-box">
+        <span class="eq-label">Corriente de cortocircuito</span>
+        <span class="eq-big">I<sub>sc</sub> = E<sub>A</sub> / Z<sub>s</sub> ≈ E<sub>A</sub> / X<sub>s</sub></span>
+      </div>
+      <div class="highlight">
+        <strong>¿Por qué es lineal?</strong> En cortocircuito, la corriente de armadura y el flujo del rotor están casi en cuadratura. El flujo resultante es pequeño, el núcleo no se satura, y I<sub>sc</sub> ∝ I<sub>f</sub> (relación lineal).
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB DC -->
+  <div id="tab-dc" class="tab-pane">
+    <div class="card">
+      <div class="card-title">
+        <span class="icon">🟣</span> Ensayo en Corriente Directa — Medición de R<sub>a</sub>
+        <span class="tag tag-dc">Ensayo DC</span>
+      </div>
+      <div class="highlight purple">
+        <strong>¿Por qué medir R<sub>a</sub> con DC?</strong> Si aplicamos CA, mediríamos la impedancia Z = R<sub>a</sub> + jX<sub>leak</sub>, no la resistencia pura. Con corriente continua, la reactancia es cero y solo medimos la resistencia óhmica del bobinado.
+      </div>
+      <div class="eq-box">
+        <span class="eq-label">Resistencia del devanado por fase (conexión Δ → Y)</span>
+        <span class="eq-big">R<sub>DC</sub> = V<sub>DC</sub> / I<sub>DC</sub></span>
+      </div>
+      <div class="highlight" style="margin-top:0.75rem">
+        <strong>Corrección por temperatura:</strong> La resistencia medida en frío difiere de la resistencia en operación. Chapman indica multiplicar por un factor de temperatura si es necesario: R<sub>a</sub> = 1.5 × R<sub>DC</sub> (estimación conservadora).
+      </div>
+      <p style="margin-top:0.75rem">Se mide tanto el devanado estatórico (armadura) como el devanado rotórico (campo), ya que ambos tienen resistencia y ambos contribuyen a las pérdidas de la máquina.</p>
+    </div>
+  </div>
+
+  <!-- TAB Zs -->
+  <div id="tab-zs" class="tab-pane">
+    <div class="card">
+      <div class="card-title">
+        <span class="icon">🟡</span> Obtención de Z<sub>s</sub>, X<sub>s</sub> y la Relación de Cortocircuito</div>
+      <p style="margin-bottom:1rem">Con los datos de OCC y SCC, se calcula la impedancia sincrónica para cada punto de operación:</p>
+      <div class="eq-box">
+        <span class="eq-label">Impedancia sincrónica no saturada (Chapman Ec. 4-13)</span>
+        <span class="eq-big">Z<sub>s</sub>(I<sub>f</sub>) = V<sub>φ,OC</sub>(I<sub>f</sub>) / I<sub>a,SC</sub>(I<sub>f</sub>)</span>
+      </div>
+      <div class="eq-box">
+        <span class="eq-label">Reactancia sincrónica</span>
+        <span class="eq-big">X<sub>s</sub> = √(Z<sub>s</sub>² − R<sub>a</sub>²) ≈ Z<sub>s</sub>  (si Ra ≪ Zs)</span>
+      </div>
+      <div class="eq-box">
+        <span class="eq-label">Relación de cortocircuito (SCR)</span>
+        <span class="eq-big">SCR = I<sub>f,OCC@Vn</sub> / I<sub>f,SCC@Ian</sub></span>
+      </div>
+      <div class="theory-grid" style="margin-top:1rem">
+        <div class="highlight" style="margin:0">
+          <strong>Z<sub>s</sub> saturada:</strong> Se obtiene usando el punto de la OCC que corresponde a la tensión nominal (sobre la curva de saturación real).
+        </div>
+        <div class="highlight blue" style="margin:0">
+          <strong>Z<sub>s</sub> no saturada:</strong> Se usa la tangente inicial de la OCC (la línea de aire o air-gap line). Siempre mayor que la saturada.
+        </div>
+      </div>
+      <div class="highlight green" style="margin-top:1rem">
+        <strong>Interpretación del SCR:</strong> Un SCR alto (≈1.0-1.5) indica baja reactancia sincrónica → mejor regulación de tensión → pero mayor corriente de cortocircuito. Los generadores modernos suelen tener SCR entre 0.5 y 1.5.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 3 · CIRCUITOS ══════════ -->
+<section id="circuitos">
+  <div class="section-header">
+    <div class="section-num">3</div>
+    <div>
+      <h2>Circuitos de Conexión</h2>
+      <p>Configuraciones del laboratorio según el Manual MEII · LUZ</p>
+    </div>
+  </div>
+
+  <!-- Circuito OCC -->
+  <div class="diagram-wrap">
+    <div class="diagram-title">
+      Circuito para Ensayo en Vacío (OCC) — Fig. 1 del Manual
+      <span class="tag tag-occ">Ensayo Vacío</span>
+    </div>
+    <svg viewBox="0 0 700 280" xmlns="http://www.w3.org/2000/svg" style="padding:16px">
+      <defs>
+        <marker id="a2" markerWidth="8" markerHeight="6" refX="6" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#8b949e"/>
+        </marker>
+      </defs>
+      <!-- Fuente VDC -->
+      <rect x="10" y="90" width="60" height="100" rx="8" fill="#1c2333" stroke="#e6a817" stroke-width="1.5"/>
+      <text x="40" y="133" fill="#e6a817" font-size="11" text-anchor="middle" font-family="JetBrains Mono,monospace">Vdc</text>
+      <text x="40" y="148" fill="#8b949e" font-size="9" text-anchor="middle" font-family="Source Sans 3,sans-serif">0-150V</text>
+      <text x="40" y="82" fill="#8b949e" font-size="9" text-anchor="middle" font-family="Source Sans 3,sans-serif">Fuente DC</text>
+      <!-- Amperímetro DC -->
+      <circle cx="130" cy="110" r="18" fill="#1c2333" stroke="#c084fc" stroke-width="1.5"/>
+      <text x="130" y="114" fill="#c084fc" font-size="12" text-anchor="middle" font-family="JetBrains Mono,monospace">A</text>
+      <text x="130" y="96" fill="#8b949e" font-size="9" text-anchor="middle" font-family="Source Sans 3,sans-serif">IDC</text>
+      <!-- Reóstato -->
+      <rect x="165" y="98" width="50" height="24" rx="4" fill="#1c2333" stroke="#f0c040" stroke-width="1.5"/>
+      <text x="190" y="114" fill="#f0c040" font-size="11" text-anchor="middle" font-family="JetBrains Mono,monospace">Re</text>
+      <text x="190" y="94" fill="#8b949e" font-size="9" text-anchor="middle" font-family="Source Sans 3,sans-serif">Reóstato</text>
+      <!-- Voltímetro DC -->
+      <circle cx="130" cy="175" r="18" fill="#1c2333" stroke="#c084fc" stroke-width="1.5"/>
+      <text x="130" y="179" fill="#c084fc" font-size="12" text-anchor="middle" font-family="JetBrains Mono,monospace">V</text>
+      <text x="130" y="196" fill="#8b949e" font-size="9" text-anchor="middle" font-family="Source Sans 3,sans-serif">VDC</text>
+      <!-- Generador sincrónico -->
+      <circle cx="390" cy="150" r="50" fill="#1c2333" stroke="#e6a817" stroke-width="2"/>
+      <text x="390" y="145" fill="#e6a817" font-size="12" text-anchor="middle" font-family="Source Sans 3,sans-serif" font-weight="700">GEN.</text>
+      <text x="390" y="160" fill="#e6a817" font-size="12" text-anchor="middle" font-family="Source Sans 3,sans-serif" font-weight="700">SINC.</text>
+      <!-- Motor de inducción -->
+      <ellipse cx="560" cy="90" rx="50" ry="35" fill="#1c2333" stroke="#58a6ff" stroke-width="2"/>
+      <text x="560" y="87" fill="#58a6ff" font-size="10" text-anchor="middle" font-family="Source Sans 3,sans-serif" font-weight="700">MOT.</text>
+      <text x="560" y="100" fill="#58a6ff" font-size="10" text-anchor="middle" font-family="Source Sans 3,sans-serif" font-weight="700">IND.</text>
+      <text x="560" y="65" fill="#8b949e" font-size="9" text-anchor="middle" font-family="Source Sans 3,sans-serif">Motor jaula de ardilla</text>
+      <!-- Eje mecánico -->
+      <line x1="510" y1="90" x2="440" y2="120" stroke="#39d0c0" stroke-width="3" stroke-dasharray="6,3"/>
+      <text x="480" y="104" fill="#39d0c0" font-size="9" text-anchor="middle" font-family="Source Sans 3,sans-serif">Ns=cte</text>
+      <!-- Conexión DC al rotor -->
+      <line x1="215" y1="110" x2="340" y2="130" stroke="#c084fc" stroke-width="1.5"/>
+      <line x1="10" y1="110" x2="112" y2="110" stroke="#c084fc" stroke-width="1.5"/>
+      <line x1="148" y1="110" x2="165" y2="110" stroke="#c084fc" stroke-width="1.5"/>
+      <line x1="130" y1="157" x2="130" y2="175" stroke="#c084fc" stroke-width="1"/>
+      <line x1="130" y1="128" x2="130" y2="157" stroke="#c084fc" stroke-width="1"/>
+      <line x1="10" y1="175" x2="112" y2="175" stroke="#c084fc" stroke-width="1.5"/>
+      <line x1="10" y1="175" x2="10" y2="190" stroke="#c084fc" stroke-width="1.5"/>
+      <line x1="10" y1="190" x2="340" y2="165" stroke="#c084fc" stroke-width="1.5"/>
+      <!-- Voltímetros CA en terminales -->
+      <circle cx="520" cy="175" r="15" fill="#1c2333" stroke="#3fb950" stroke-width="1.5"/>
+      <text x="520" y="179" fill="#3fb950" font-size="11" text-anchor="middle" font-family="JetBrains Mono,monospace">V</text>
+      <text x="520" y="160" fill="#8b949e" font-size="8" text-anchor="middle" font-family="Source Sans 3,sans-serif">VAB</text>
+      <circle cx="555" cy="205" r="15" fill="#1c2333" stroke="#3fb950" stroke-width="1.5"/>
+      <text x="555" y="209" fill="#3fb950" font-size="11" text-anchor="middle" font-family="JetBrains Mono,monospace">V</text>
+      <text x="555" y="192" fill="#8b949e" font-size="8" text-anchor="middle" font-family="Source Sans 3,sans-serif">VBC</text>
+      <circle cx="590" cy="175" r="15" fill="#1c2333" stroke="#3fb950" stroke-width="1.5"/>
+      <text x="590" y="179" fill="#3fb950" font-size="11" text-anchor="middle" font-family="JetBrains Mono,monospace">V</text>
+      <text x="590" y="160" fill="#8b949e" font-size="8" text-anchor="middle" font-family="Source Sans 3,sans-serif">VCA</text>
+      <!-- Líneas CA -->
+      <line x1="440" y1="135" x2="505" y2="175" stroke="#3fb950" stroke-width="1.5"/>
+      <line x1="440" y1="150" x2="540" y2="205" stroke="#3fb950" stroke-width="1.5"/>
+      <line x1="440" y1="165" x2="575" y2="175" stroke="#3fb950" stroke-width="1.5"/>
+      <!-- Leyenda -->
+      <text x="350" y="258" fill="#8b949e" font-size="9" text-anchor="middle" font-family="Source Sans 3,sans-serif">⚠ Terminales del estátor ABIERTOS (sin carga). Conexión DELTA en el estátor.</text>
+    </svg>
+  </div>
+
+  <!-- Circuito SCC -->
+  <div class="diagram-wrap">
+    <div class="diagram-title">
+      Circuito para Ensayo en Cortocircuito (SCC) — Fig. 3 del Manual
+      <span class="tag tag-scc">Ensayo CC</span>
+    </div>
+    <svg viewBox="0 0 700 260" xmlns="http://www.w3.org/2000/svg" style="padding:16px">
+      <!-- Fuente VDC -->
+      <rect x="10" y="80" width="60" height="100" rx="8" fill="#1c2333" stroke="#e6a817" stroke-width="1.5"/>
+      <text x="40" y="123" fill="#e6a817" font-size="11" text-anchor="middle" font-family="JetBrains Mono,monospace">Vdc</text>
+      <text x="40" y="138" fill="#8b949e" font-size="9" text-anchor="middle" font-family="Source Sans 3,sans-serif">Campo</text>
+      <!-- Amperímetro DC -->
+      <circle cx="130" cy="100" r="18" fill="#1c2333" stroke="#c084fc" stroke-width="1.5"/>
+      <text x="130" y="104" fill="#c084fc" font-size="12" text-anchor="middle" font-family="JetBrains Mono,monospace">A</text>
+      <!-- Reóstato -->
+      <rect x="165" y="88" width="50" height="24" rx="4" fill="#1c2333" stroke="#f0c040" stroke-width="1.5"/>
+      <text x="190" y="104" fill="#f0c040" font-size="11" text-anchor="middle" font-family="JetBrains Mono,monospace">Re</text>
+      <!-- Generador sincrónico -->
+      <circle cx="390" cy="140" r="50" fill="#1c2333" stroke="#e6a817" stroke-width="2"/>
+      <text x="390" y="135" fill="#e6a817" font-size="12" text-anchor="middle" font-family="Source Sans 3,sans-serif" font-weight="700">GEN.</text>
+      <text x="390" y="150" fill="#e6a817" font-size="12" text-anchor="middle" font-family="Source Sans 3,sans-serif" font-weight="700">SINC.</text>
+      <!-- Motor -->
+      <ellipse cx="560" cy="80" rx="50" ry="30" fill="#1c2333" stroke="#58a6ff" stroke-width="2"/>
+      <text x="560" y="77" fill="#58a6ff" font-size="10" text-anchor="middle" font-family="Source Sans 3,sans-serif" font-weight="700">MOT. IND.</text>
+      <text x="560" y="91" fill="#8b949e" font-size="8" text-anchor="middle" font-family="Source Sans 3,sans-serif">Ns = cte</text>
+      <!-- Eje -->
+      <line x1="510" y1="80" x2="440" y2="110" stroke="#39d0c0" stroke-width="3" stroke-dasharray="6,3"/>
+      <!-- Cableado DC campo -->
+      <line x1="215" y1="100" x2="340" y2="118" stroke="#c084fc" stroke-width="1.5"/>
+      <line x1="10" y1="100" x2="112" y2="100" stroke="#c084fc" stroke-width="1.5"/>
+      <line x1="148" y1="100" x2="165" y2="100" stroke="#c084fc" stroke-width="1.5"/>
+      <line x1="10" y1="165" x2="340" y2="155" stroke="#c084fc" stroke-width="1.5"/>
+      <!-- Amperímetros CA en cortocircuito -->
+      <circle cx="510" cy="165" r="15" fill="#1c2333" stroke="#ff6b6b" stroke-width="2"/>
+      <text x="510" y="169" fill="#ff6b6b" font-size="11" text-anchor="middle" font-family="JetBrains Mono,monospace">A</text>
+      <text x="510" y="152" fill="#8b949e" font-size="8" text-anchor="middle" font-family="Source Sans 3,sans-serif">IAB</text>
+      <circle cx="548" cy="195" r="15" fill="#1c2333" stroke="#ff6b6b" stroke-width="2"/>
+      <text x="548" y="199" fill="#ff6b6b" font-size="11" text-anchor="middle" font-family="JetBrains Mono,monospace">A</text>
+      <text x="548" y="182" fill="#8b949e" font-size="8" text-anchor="middle" font-family="Source Sans 3,sans-serif">IBC</text>
+      <circle cx="586" cy="165" r="15" fill="#1c2333" stroke="#ff6b6b" stroke-width="2"/>
+      <text x="586" y="169" fill="#ff6b6b" font-size="11" text-anchor="middle" font-family="JetBrains Mono,monospace">A</text>
+      <text x="586" y="152" fill="#8b949e" font-size="8" text-anchor="middle" font-family="Source Sans 3,sans-serif">ICA</text>
+      <!-- Cortocircuito: líneas convergentes -->
+      <line x1="440" y1="125" x2="495" y2="165" stroke="#ff6b6b" stroke-width="1.5"/>
+      <line x1="440" y1="140" x2="533" y2="195" stroke="#ff6b6b" stroke-width="1.5"/>
+      <line x1="440" y1="155" x2="571" y2="165" stroke="#ff6b6b" stroke-width="1.5"/>
+      <!-- Barras de cortocircuito -->
+      <line x1="525" y1="165" x2="620" y2="165" stroke="#ff6b6b" stroke-width="2"/>
+      <line x1="563" y1="195" x2="620" y2="195" stroke="#ff6b6b" stroke-width="2"/>
+      <line x1="601" y1="165" x2="620" y2="165" stroke="#ff6b6b" stroke-width="2"/>
+      <line x1="620" y1="155" x2="620" y2="205" stroke="#ff6b6b" stroke-width="2.5"/>
+      <text x="635" y="183" fill="#ff6b6b" font-size="9" font-family="Source Sans 3,sans-serif" font-weight="700">SC</text>
+      <!-- Advertencia -->
+      <rect x="220" y="218" width="260" height="30" rx="6" fill="rgba(255,107,107,0.1)" stroke="rgba(255,107,107,0.4)" stroke-width="1"/>
+      <text x="350" y="237" fill="#ff6b6b" font-size="10" text-anchor="middle" font-family="Source Sans 3,sans-serif" font-weight="700">⚠ Verificar campo en 0V antes de arrancar</text>
+    </svg>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">📋</span> Equipo Requerido — Práctica N°3 (Manual LUZ)</div>
+    <table>
+      <tr><th>Instrumento</th><th>Cantidad</th><th>Rango / Especificación</th><th>Ensayo</th></tr>
+      <tr><td>Voltímetros CA</td><td>3</td><td>0–240 V AC</td><td><span class="tag tag-occ">OCC</span></td></tr>
+      <tr><td>Amperímetros CA</td><td>3</td><td>Hasta I<sub>n</sub> del generador</td><td><span class="tag tag-scc">SCC</span></td></tr>
+      <tr><td>Vatímetros</td><td>2</td><td>Medición de potencia 3φ</td><td>Post-lab</td></tr>
+      <tr><td>Ohmímetro de precisión</td><td>1</td><td>Escala baja (mΩ–Ω)</td><td><span class="tag tag-dc">DC</span></td></tr>
+      <tr><td>Tacómetro</td><td>1</td><td>Medición en rpm</td><td>Todos</td></tr>
+      <tr><td>Voltímetro CD</td><td>1</td><td>0–150 V DC</td><td>Campo</td></tr>
+      <tr><td>Amperímetro CD</td><td>1</td><td>Campo del rotor</td><td>Campo</td></tr>
+      <tr><td>Fuente CA trifásica variable</td><td>1</td><td>0–240 V, 60 Hz</td><td>Motor</td></tr>
+      <tr><td>Fuente CD variable</td><td>1</td><td>0–150 V DC</td><td>Campo</td></tr>
+      <tr><td>Reóstatos</td><td>2+</td><td>Control de corriente de campo</td><td>Todos</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- ══════════ 4 · CÁLCULOS ══════════ -->
+<section id="calculos">
+  <div class="section-header">
+    <div class="section-num">4</div>
+    <div>
+      <h2>Cálculos del Post-Laboratorio</h2>
+      <p>Fórmulas clave · Calculadora interactiva</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">🧮</span> Calculadora de Parámetros Sincrónico</div>
+    <p style="margin-bottom:1.25rem; color:var(--text2); font-size:0.88rem">Introduce los valores obtenidos en el laboratorio para calcular los parámetros de la máquina:</p>
+    
+    <div class="calc-grid">
+      <div class="calc-field">
+        <label>V<sub>OC</sub> (V) — Tensión en vacío (OCC)</label>
+        <input type="number" id="voc" placeholder="Ej: 220" value="220">
+      </div>
+      <div class="calc-field">
+        <label>I<sub>SC</sub> (A) — Corriente de CC (SCC)</label>
+        <input type="number" id="isc" placeholder="Ej: 5.5" value="5.5">
+      </div>
+      <div class="calc-field">
+        <label>V<sub>DC</sub> (V) — Tensión DC aplicada</label>
+        <input type="number" id="vdc" placeholder="Ej: 12" value="12">
+      </div>
+      <div class="calc-field">
+        <label>I<sub>DC</sub> (A) — Corriente DC medida</label>
+        <input type="number" id="idc" placeholder="Ej: 4" value="4">
+      </div>
+      <div class="calc-field">
+        <label>Conexión del estátor</label>
+        <select id="conexion">
+          <option value="Y">Estrella (Y)</option>
+          <option value="D">Delta (Δ)</option>
+        </select>
+      </div>
+      <div class="calc-field">
+        <label>Frecuencia f (Hz)</label>
+        <input type="number" id="frec" placeholder="Ej: 60" value="60">
+      </div>
+    </div>
+    <button class="btn-primary" onclick="calcular()">⚡ Calcular Parámetros</button>
+    <div id="resultado" class="result-box" style="display:none"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">📊</span> Fórmulas de Cálculo Post-Lab (Manual LUZ)</div>
+    <ol class="steps">
+      <li>
+        <div>
+          <strong>Trazar OCC y SCC en el mismo papel milimetrado</strong><br>
+          <span style="font-size:0.88rem; color:var(--text2)">Eje X: corriente de campo I<sub>f</sub> (A). Eje Y: tensión V<sub>t</sub> (V) para OCC y corriente I<sub>a</sub> (A) para SCC. En el mismo gráfico se puede ver la "air-gap line" (tangente inicial de la OCC).</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <strong>Calcular Z<sub>s</sub> = V<sub>φ,OC</sub> / I<sub>a,SC</sub></strong><br>
+          <span style="font-size:0.88rem; color:var(--text2)">Para cada valor de I<sub>f</sub>, tomar el V<sub>OC</sub> de la OCC y la I<sub>SC</sub> de la SCC. Z<sub>s</sub> varía con la saturación.</span>
+          <div class="eq-box" style="margin:0.5rem 0; font-size:0.85rem">Z<sub>s</sub>(I<sub>f</sub>) = V<sub>φ,OC</sub> / I<sub>a,SC</sub></div>
+        </div>
+      </li>
+      <li>
+        <div>
+          <strong>Calcular R<sub>a</sub> del ensayo DC</strong><br>
+          <div class="eq-box" style="margin:0.5rem 0; font-size:0.85rem">R<sub>DC</sub> = V<sub>DC</sub> / I<sub>DC</sub> · (factor conexión)</div>
+          <span style="font-size:0.88rem; color:var(--text2)">Si se midió entre dos terminales en Y: R<sub>a</sub> = R<sub>DC</sub>/2. Si en Δ: R<sub>a</sub> = 3·R<sub>DC</sub>/2.</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <strong>Calcular X<sub>s</sub> y comparar saturada vs no saturada</strong><br>
+          <div class="eq-box" style="margin:0.5rem 0; font-size:0.85rem">X<sub>s</sub> = √(Z<sub>s</sub>² − R<sub>a</sub>²)</div>
+        </div>
+      </li>
+      <li>
+        <div>
+          <strong>Calcular la Relación de Cortocircuito (SCR)</strong><br>
+          <div class="eq-box" style="margin:0.5rem 0; font-size:0.85rem">SCR = I<sub>f</sub> @ V<sub>t,nominal</sub> en OCC / I<sub>f</sub> @ I<sub>a,nominal</sub> en SCC</div>
+          <span style="font-size:0.88rem; color:var(--text2)">También: SCR ≈ 1/X<sub>s(pu)</sub> donde X<sub>s(pu)</sub> es X<sub>s</sub> en por unidad.</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <strong>Verificar velocidad desde frecuencia</strong><br>
+          <div class="eq-box" style="margin:0.5rem 0; font-size:0.85rem">n = 120·f / P</div>
+          <span style="font-size:0.88rem; color:var(--text2)">Comparar con la lectura del tacómetro. La diferencia debe ser mínima.</span>
+        </div>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<!-- ══════════ 5 · ACTIVIDADES ══════════ -->
+<section id="actividades">
+  <div class="section-header">
+    <div class="section-num">5</div>
+    <div>
+      <h2>Actividades Pre-Laboratorio</h2>
+      <p>Responde estas preguntas antes de ir al laboratorio 💪</p>
+    </div>
+  </div>
+
+  <div class="highlight">
+    <strong>Instrucciones:</strong> Intenta responder cada pregunta antes de ver la retroalimentación. Al hacer clic en una opción, verás si es correcta y una explicación detallada. ¡Sin trampa!
+  </div>
+
+  <!-- Q1 -->
+  <div class="quiz-card">
+    <div class="quiz-q">1. ¿Cuál es la velocidad sincrónica de un generador de <strong>6 polos</strong> conectado a una red de <strong>60 Hz</strong>?</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt" onclick="responder(this,false,'q1')"><span class="opt-letter">A</span>3600 rpm</div>
+      <div class="quiz-opt" onclick="responder(this,false,'q1')"><span class="opt-letter">B</span>900 rpm</div>
+      <div class="quiz-opt" onclick="responder(this,true,'q1')"><span class="opt-letter">C</span>1200 rpm</div>
+      <div class="quiz-opt" onclick="responder(this,false,'q1')"><span class="opt-letter">D</span>1800 rpm</div>
+    </div>
+    <div id="q1-fb" class="quiz-feedback">
+      ✅ <strong>Correcto.</strong> Usando n = 120f/P = 120×60/6 = <strong>1200 rpm</strong>. Para 2 polos sería 3600 rpm; para 4 polos, 1800 rpm; para 6 polos, 1200 rpm. Este es el tipo de cálculo que deberás verificar con el tacómetro en el laboratorio.
+    </div>
+  </div>
+
+  <!-- Q2 -->
+  <div class="quiz-card">
+    <div class="quiz-q">2. En el Ensayo en Vacío (OCC), ¿cuál es la condición de los terminales del estátor?</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt" onclick="responder(this,false,'q2')"><span class="opt-letter">A</span>Cortocircuitados mediante amperímetros</div>
+      <div class="quiz-opt" onclick="responder(this,true,'q2')"><span class="opt-letter">B</span>Completamente abiertos (sin carga)</div>
+      <div class="quiz-opt" onclick="responder(this,false,'q2')"><span class="opt-letter">C</span>Conectados a una carga resistiva nominal</div>
+      <div class="quiz-opt" onclick="responder(this,false,'q2')"><span class="opt-letter">D</span>Conectados a la red eléctrica</div>
+    </div>
+    <div id="q2-fb" class="quiz-feedback">
+      ✅ <strong>Correcto.</strong> En el ensayo en vacío los terminales están <strong>abiertos</strong> (sin carga). Esto hace que I<sub>a</sub> = 0, y por tanto no hay caída de tensión en Ra ni en Xs. Así la tensión en terminales V<sub>t</sub> = V<sub>φ</sub> = E<sub>A</sub>. Mides directamente la FEM interna.
+    </div>
+  </div>
+
+  <!-- Q3 -->
+  <div class="quiz-card">
+    <div class="quiz-q">3. Se mide V<sub>OC</sub> = 240 V y I<sub>SC</sub> = 6 A para el mismo valor de I<sub>f</sub>. ¿Cuál es Z<sub>s</sub>?</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt" onclick="responder(this,false,'q3')"><span class="opt-letter">A</span>1440 Ω</div>
+      <div class="quiz-opt" onclick="responder(this,true,'q3')"><span class="opt-letter">B</span>40 Ω</div>
+      <div class="quiz-opt" onclick="responder(this,false,'q3')"><span class="opt-letter">C</span>246 Ω</div>
+      <div class="quiz-opt" onclick="responder(this,false,'q3')"><span class="opt-letter">D</span>0.025 Ω</div>
+    </div>
+    <div id="q3-fb" class="quiz-feedback">
+      ✅ <strong>Correcto.</strong> Z<sub>s</sub> = V<sub>OC</sub> / I<sub>SC</sub> = 240/6 = <strong>40 Ω</strong>. Esta es la fórmula central del método de la impedancia sincrónica (Chapman, Ec. 4-13). ⚠ Nota: si la tensión es de línea, primero debes convertir a valor de fase: V<sub>φ</sub> = V<sub>L</sub>/√3 para conexión Y.
+    </div>
+  </div>
+
+  <!-- Q4 -->
+  <div class="quiz-card">
+    <div class="quiz-q">4. ¿Por qué la curva SCC (Ensayo en Cortocircuito) es esencialmente lineal mientras la OCC es no lineal?</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt" onclick="responder(this,false,'q4')"><span class="opt-letter">A</span>Porque en cortocircuito solo circula corriente DC</div>
+      <div class="quiz-opt" onclick="responder(this,false,'q4')"><span class="opt-letter">B</span>Porque los instrumentos tienen respuesta lineal</div>
+      <div class="quiz-opt" onclick="responder(this,true,'q4')"><span class="opt-letter">C</span>Porque en CC el flujo resultante es pequeño y el núcleo no se satura</div>
+      <div class="quiz-opt" onclick="responder(this,false,'q4')"><span class="opt-letter">D</span>Porque la resistencia Ra domina sobre Xs en cortocircuito</div>
+    </div>
+    <div id="q4-fb" class="quiz-feedback">
+      ✅ <strong>Correcto.</strong> En cortocircuito, la corriente de armadura está casi en cuadratura (90°) con el flujo del rotor. Esto significa que el flujo de reacción de armadura se opone al flujo del rotor, resultando en un flujo neto pequeño en el núcleo. Al no haber saturación, I<sub>SC</sub> ∝ I<sub>f</sub> → relación lineal. La OCC, en cambio, mide el flujo total que sí satura el núcleo.
+    </div>
+  </div>
+
+  <!-- Q5 -->
+  <div class="quiz-card">
+    <div class="quiz-q">5. ¿Qué mide el tacómetro en la práctica y para qué sirve ese dato?</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt" onclick="responder(this,false,'q5')"><span class="opt-letter">A</span>La corriente de campo y sirve para calcular la resistencia del rotor</div>
+      <div class="quiz-opt" onclick="responder(this,true,'q5')"><span class="opt-letter">B</span>La velocidad en rpm y sirve para verificar que el generador opera a velocidad sincrónica</div>
+      <div class="quiz-opt" onclick="responder(this,false,'q5')"><span class="opt-letter">C</span>La temperatura del núcleo para detectar sobrecalentamiento</div>
+      <div class="quiz-opt" onclick="responder(this,false,'q5')"><span class="opt-letter">D</span>La potencia mecánica de entrada</div>
+    </div>
+    <div id="q5-fb" class="quiz-feedback">
+      ✅ <strong>Correcto.</strong> El tacómetro mide la velocidad en rpm. El post-lab pide calcular la velocidad teórica desde la frecuencia (n = 120f/P) y compararla con la lectura del tacómetro. Si el generador opera a velocidad sincrónica, ambas deben coincidir. Una discrepancia indica que la frecuencia no es exactamente 60 Hz o que el tacómetro tiene error.
+    </div>
+  </div>
+
+  <!-- Q6 -->
+  <div class="quiz-card">
+    <div class="quiz-q">6. ¿Para qué se realizan el ciclo ascendente Y el ciclo descendente en el ensayo en vacío?</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt" onclick="responder(this,false,'q6')"><span class="opt-letter">A</span>Para promediar datos y reducir el error de medición estadístico</div>
+      <div class="quiz-opt" onclick="responder(this,false,'q6')"><span class="opt-letter">B</span>Es un requisito burocrático del manual sin fundamento técnico</div>
+      <div class="quiz-opt" onclick="responder(this,true,'q6')"><span class="opt-letter">C</span>Para observar el efecto de histéresis magnética del núcleo ferromagnético</div>
+      <div class="quiz-opt" onclick="responder(this,false,'q6')"><span class="opt-letter">D</span>Porque el generador se calienta y la curva cambia con la temperatura</div>
+    </div>
+    <div id="q6-fb" class="quiz-feedback">
+      ✅ <strong>Correcto.</strong> La <strong>histéresis magnética</strong> es la "memoria" del material ferromagnético: cuando se reduce H (corriente de campo), B (flujo) no baja por el mismo camino que subió. Por eso la curva descendente está ligeramente por encima de la ascendente, formando un lazo. Este es el lazo de histéresis de Steinmetz. El manual especifica ambos ciclos para documentar este comportamiento real de la máquina.
+    </div>
+  </div>
+
+  <!-- Q7 -->
+  <div class="quiz-card">
+    <div class="quiz-q">7. La Relación de Cortocircuito (SCR) de un generador es 1.2. ¿Cuál es el valor aproximado de X<sub>s</sub> en por unidad?</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt" onclick="responder(this,false,'q7')"><span class="opt-letter">A</span>1.2 pu</div>
+      <div class="quiz-opt" onclick="responder(this,true,'q7')"><span class="opt-letter">B</span>0.83 pu</div>
+      <div class="quiz-opt" onclick="responder(this,false,'q7')"><span class="opt-letter">C</span>2.4 pu</div>
+      <div class="quiz-opt" onclick="responder(this,false,'q7')"><span class="opt-letter">D</span>0.5 pu</div>
+    </div>
+    <div id="q7-fb" class="quiz-feedback">
+      ✅ <strong>Correcto.</strong> X<sub>s(pu)</sub> ≈ 1/SCR = 1/1.2 ≈ <strong>0.83 pu</strong>. Un SCR alto significa baja reactancia sincrónica (buena regulación de tensión, pero mayor corriente de cortocircuito). Un SCR bajo implica alta reactancia (peor regulación, pero menor corriente de falla). Los generadores de turbina de vapor suelen tener SCR ≈ 0.5–0.8; los generadores hidráulicos ≈ 1.0–1.5.
+    </div>
+  </div>
+
+  <!-- Q8 — Pregunta de seguridad -->
+  <div class="quiz-card" style="border-color: rgba(255,107,107,0.3)">
+    <div class="quiz-q">⚠️ 8. Antes de comenzar el ensayo en cortocircuito, ¿cuál es el paso de seguridad MÁS crítico?</div>
+    <div class="quiz-opts">
+      <div class="quiz-opt" onclick="responder(this,false,'q8')"><span class="opt-letter">A</span>Verificar que el tacómetro esté calibrado</div>
+      <div class="quiz-opt" onclick="responder(this,false,'q8')"><span class="opt-letter">B</span>Asegurarse de que los voltímetros estén conectados</div>
+      <div class="quiz-opt" onclick="responder(this,true,'q8')"><span class="opt-letter">C</span>Verificar que la fuente de tensión de campo esté en 0 V antes de arrancar</div>
+      <div class="quiz-opt" onclick="responder(this,false,'q8')"><span class="opt-letter">D</span>Conectar primero los amperímetros y luego arrancar el motor</div>
+    </div>
+    <div id="q8-fb" class="quiz-feedback">
+      ✅ <strong>Correcto y CRÍTICO.</strong> El manual explícitamente indica (con símbolo ⚠️): <em>"Rectificar que la fuente de tensión de campo esté en 0 V"</em>. Si se arranca con corriente de campo diferente de cero, la corriente de cortocircuito puede exceder la capacidad nominal de los instrumentos y de la máquina, causando daños graves. ¡Este es el punto de seguridad más importante de toda la práctica!
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 6 · PROFESORA GERELI ══════════ -->
+<section id="gereli">
+  <div class="section-header">
+    <div class="section-num">6</div>
+    <div>
+      <h2>Pregúntale a la Profesora Gereli</h2>
+      <p>Respuestas a las preguntas más frecuentes — 100% offline</p>
+    </div>
+  </div>
+
+  <div class="gereli-hero">
+    <div class="gereli-avatar">G</div>
+    <div class="gereli-info">
+      <h3>Prof. Gereli Gutiérrez</h3>
+      <p>Departamento de Potencia · Ingeniería Eléctrica · LUZ<br>
+      Especialista en Máquinas Eléctricas y Sistemas de Potencia</p>
+      <span class="badge">Material de Pre-Lab Diseñado por esta Cátedra</span>
+    </div>
+  </div>
+
+  <input type="text" class="qa-search" placeholder="🔍 Buscar una pregunta... (ej: impedancia, vacío, corriente)"
+    oninput="filtrarQA(this.value)" id="qa-input">
+
+  <div id="qa-list">
+
+    <div class="qa-item" data-tags="generador sincrono que es definicion">
+      <div class="qa-q" onclick="toggleQA(this.parentElement)">
+        <span>¿Qué es exactamente un generador sincrónico y por qué se llama así?</span>
+        <span class="qa-tag tag-teoria">Concepto</span>
+        <span class="arrow">▼</span>
+      </div>
+      <div class="qa-a">
+        Se llama sincrónico porque la velocidad del campo magnético giratorio del rotor <strong>está sincronizada</strong> con la velocidad mecánica del eje, y la frecuencia eléctrica generada es directamente proporcional a esa velocidad. Si el rotor gira a <span class="eq">ns = 1800 rpm</span> con 4 polos, siempre producirá 60 Hz — no puede operar a otra frecuencia a menos que cambie la velocidad. A diferencia de los motores de inducción, no hay "deslizamiento". Los generadores de las plantas eléctricas (turbovapor, hidráulicas) son prácticamente todos sincrónicos.
+      </div>
+    </div>
+
+    <div class="qa-item" data-tags="corriente campo excitacion rotor para que sirve">
+      <div class="qa-q" onclick="toggleQA(this.parentElement)">
+        <span>¿Para qué sirve la corriente de campo I<sub>f</sub> y qué pasa si la aumento o disminuyo?</span>
+        <span class="qa-tag tag-occ">OCC</span>
+        <span class="arrow">▼</span>
+      </div>
+      <div class="qa-a">
+        La corriente de campo I<sub>f</sub> circula por el devanado del <strong>rotor</strong> y crea el campo magnético principal. Cuanto mayor sea I<sub>f</sub>, mayor es el flujo del rotor y mayor la FEM interna E<sub>A</sub>. Esto permite controlar la tensión en terminales:
+        <br><br>
+        • <strong>Si aumentas I<sub>f</sub>:</strong> E<sub>A</sub> sube → si la máquina tiene carga inductiva, la tensión en terminales V<sub>t</sub> sube → se dice que está "sobreexcitada". También inyecta potencia reactiva capacitiva a la red (comportamiento de banco de capacitores).
+        <br>
+        • <strong>Si disminuyes I<sub>f</sub>:</strong> E<sub>A</sub> baja → V<sub>t</sub> puede caer bajo lo nominal → está "subexcitada". Absorbe potencia reactiva de la red (comportamiento inductivo).
+        <br><br>
+        En el laboratorio, la OCC te muestra exactamente cómo varía V<sub>t</sub> = E<sub>A</sub> con I<sub>f</sub>.
+      </div>
+    </div>
+
+    <div class="qa-item" data-tags="occ vacío ensayo cómo hacer procedimiento">
+      <div class="qa-q" onclick="toggleQA(this.parentElement)">
+        <span>¿Cómo se hace el ensayo en vacío paso a paso?</span>
+        <span class="qa-tag tag-occ">OCC</span>
+        <span class="arrow">▼</span>
+      </div>
+      <div class="qa-a">
+        1. Conectar los voltímetros CA en los terminales del estátor. Dejar los terminales <strong>abiertos</strong> (sin carga).<br>
+        2. Conectar la fuente DC al circuito de campo (rotor) con el reóstato al máximo (mínima I<sub>f</sub>).<br>
+        3. Arrancar el motor de inducción. Verificar que gire a velocidad sincrónica (tacómetro + frecuencímetro).<br>
+        4. <strong>Ciclo ascendente:</strong> Aumentar gradualmente I<sub>f</sub> desde 0. En cada paso anotar: I<sub>f</sub>, V<sub>AB</sub>, V<sub>BC</sub>, V<sub>CA</sub>, f (Hz), n (rpm).<br>
+        5. Continuar hasta superar ligeramente la tensión nominal o hasta el límite del reóstato.<br>
+        6. <strong>Ciclo descendente:</strong> Reducir I<sub>f</sub> hasta 0. Anotar los mismos datos. Notarás que la curva de bajada está ligeramente por encima → <strong>histéresis</strong>.<br>
+        7. Calcular V<sub>fase</sub> = V<sub>línea</sub>/√3 si la conexión es estrella (Y).
+      </div>
+    </div>
+
+    <div class="qa-item" data-tags="cortocircuito scc ensayo amperimetro peligro seguridad">
+      <div class="qa-q" onclick="toggleQA(this.parentElement)">
+        <span>¿Por qué el ensayo en cortocircuito es peligroso y cómo se hace de forma segura?</span>
+        <span class="qa-tag tag-scc">SCC</span>
+        <span class="qa-tag tag-warn">⚠ Seguridad</span>
+        <span class="arrow">▼</span>
+      </div>
+      <div class="qa-a">
+        Es peligroso porque se cortocircuitan los terminales del estátor. Si hay tensión en los terminales cuando se conecta el cortocircuito, la corriente puede ser enormemente alta y dañar la máquina y los instrumentos.<br><br>
+        <strong>Protocolo de seguridad obligatorio:</strong><br>
+        ① Apagar el motor.<br>
+        ② Llevar la fuente de campo a <strong>0 V</strong> (verificar con voltímetro DC).<br>
+        ③ Conectar los amperímetros CA como "puente" de cortocircuito entre terminales del estátor (Figura 3 del manual).<br>
+        ④ Arrancar el motor.<br>
+        ⑤ Aumentar I<sub>f</sub> muy lentamente desde cero. El piso de la corriente CA será proporcional a I<sub>f</sub>.<br>
+        ⑥ Anotar I<sub>f</sub>, I<sub>AB</sub>, I<sub>BC</sub>, I<sub>CA</sub>, n (rpm) en cada paso.<br>
+        ⑦ No exceder la corriente nominal de armadura del generador.
+      </div>
+    </div>
+
+    <div class="qa-item" data-tags="impedancia sincronica Zs calcular como formula">
+      <div class="qa-q" onclick="toggleQA(this.parentElement)">
+        <span>¿Cómo calculo la impedancia sincrónica Z<sub>s</sub> con los datos del laboratorio?</span>
+        <span class="qa-tag tag-occ">OCC</span>
+        <span class="qa-tag tag-scc">SCC</span>
+        <span class="arrow">▼</span>
+      </div>
+      <div class="qa-a">
+        El método es sencillo. Para cada valor de corriente de campo I<sub>f</sub> donde tengas datos de ambas curvas:<br><br>
+        <span class="eq">Zs(If) = Vφ,OC(If) / Ia,SC(If)</span><br><br>
+        Donde:<br>
+        • <span class="eq">Vφ,OC</span> = tensión de fase en vacío para ese I<sub>f</sub> (de la OCC)<br>
+        • <span class="eq">Ia,SC</span> = corriente de armadura en CC para ese I<sub>f</sub> (de la SCC)<br><br>
+        Si tienes tensión de línea (conexión Y): <span class="eq">Vφ = VL / √3</span><br><br>
+        <strong>Importante:</strong> Z<sub>s</sub> no es constante — varía porque la OCC es no lineal (saturación). El valor al punto nominal de la OCC se llama Z<sub>s saturado</sub>; el valor usando la air-gap line se llama Z<sub>s no saturado</sub>. Para diseño, se usa el saturado (más conservador para protección, más realista para operación).
+      </div>
+    </div>
+
+    <div class="qa-item" data-tags="reactancia sincronica Xs diferencia">
+      <div class="qa-q" onclick="toggleQA(this.parentElement)">
+        <span>¿Cuál es la diferencia entre Z<sub>s</sub> y X<sub>s</sub>? ¿Y qué papel tiene R<sub>a</sub>?</span>
+        <span class="qa-tag tag-dc">Resistencia</span>
+        <span class="arrow">▼</span>
+      </div>
+      <div class="qa-a">
+        <strong>Z<sub>s</sub></strong> es la impedancia sincrónica completa: <span class="eq">Zs = Ra + jXs</span><br><br>
+        <strong>R<sub>a</sub></strong> es la resistencia del devanado de armadura. Es pequeña pero real; genera pérdidas <span class="eq">P = 3·Ia²·Ra</span>. Se mide con el ensayo DC.<br><br>
+        <strong>X<sub>s</sub></strong> es la reactancia sincrónica. Incluye la reactancia de dispersión + la reactancia de reacción de armadura. Es el término dominante en Z<sub>s</sub>:<br>
+        <span class="eq">Xs = √(Zs² - Ra²)</span><br><br>
+        En la práctica, como <span class="eq">Ra ≪ Xs</span>, con frecuencia se aproxima <span class="eq">Xs ≈ Zs</span>. El post-lab te pide calcular ambos para ver qué tan buena es esa aproximación con tu máquina real.
+      </div>
+    </div>
+
+    <div class="qa-item" data-tags="regulacion tension VR formula que es">
+      <div class="qa-q" onclick="toggleQA(this.parentElement)">
+        <span>¿Qué es la regulación de tensión (VR) y cómo se calcula con los parámetros del laboratorio?</span>
+        <span class="qa-tag tag-teoria">Aplicación</span>
+        <span class="arrow">▼</span>
+      </div>
+      <div class="qa-a">
+        La regulación de tensión (VR) mide cuánto varía la tensión en terminales cuando se va de plena carga a vacío, manteniendo la corriente de campo y la velocidad constantes:<br><br>
+        <span class="eq">VR = (Vnl − Vfl) / Vfl × 100%</span><br><br>
+        Donde V<sub>nl</sub> = tensión en vacío y V<sub>fl</sub> = tensión a plena carga.<br><br>
+        Con el modelo de circuito equivalente:<br>
+        <span class="eq">EA = Vφ + Ra·Ia + jXs·Ia</span> → calculas |E<sub>A</sub>|<br>
+        En vacío, V<sub>t</sub> = E<sub>A</sub>, entonces:<br>
+        <span class="eq">VR = (|EA| − |Vφ|) / |Vφ| × 100%</span><br><br>
+        <strong>Regla general:</strong> Con carga inductiva (FP atrasado) VR es positiva y grande. Con carga capacitiva (FP adelantado) VR puede ser negativa (¡la tensión sube al cargar!). Con carga resistiva es positiva pero moderada.
+      </div>
+    </div>
+
+    <div class="qa-item" data-tags="polarizacion bobinas identificar terminales devanado">
+      <div class="qa-q" onclick="toggleQA(this.parentElement)">
+        <span>¿Para qué se hace la polarización de bobinas al inicio de la práctica?</span>
+        <span class="qa-tag tag-occ">Polaridad</span>
+        <span class="arrow">▼</span>
+      </div>
+      <div class="qa-a">
+        Las tres fases del estátor deben estar conectadas con la polaridad correcta para que sus tensiones sumen vectorialmente (con 120° de desfase) y no se anulen. Si conectas dos bobinas en serie sin verificar polaridad, podrías obtener 0 V en lugar del voltaje esperado.<br><br>
+        <strong>Procedimiento de polarización:</strong><br>
+        ① Conectar el circuito de la Fig. 2 del manual: dos bobinas en serie con la fuente AC.<br>
+        ② Si la polaridad es <strong>aditiva</strong>: la tensión en la serie = V<sub>a</sub> + V<sub>b</sub> (suma fasorial).<br>
+        ③ Si la polaridad es <strong>sustractiva</strong>: la tensión = V<sub>a</sub> − V<sub>b</sub>.<br>
+        ④ La "correcta" polaridad para conexión Y o Δ es aquella donde las fases tienen 120° de desfase. Así al conectar en Δ, la tensión resultante debe ser ≈ 0 V en el lazo (las tres fases se anulan en Δ), lo que indica polaridad correcta.
+      </div>
+    </div>
+
+    <div class="qa-item" data-tags="SCR relacion cortocircuito que es para que sirve">
+      <div class="qa-q" onclick="toggleQA(this.parentElement)">
+        <span>¿Qué es la Relación de Cortocircuito (SCR) y por qué es importante en sistemas de potencia?</span>
+        <span class="qa-tag tag-scc">SCR</span>
+        <span class="arrow">▼</span>
+      </div>
+      <div class="qa-a">
+        El SCR (Short Circuit Ratio) es la relación entre la corriente de campo necesaria para producir la tensión nominal en vacío y la corriente de campo necesaria para producir la corriente nominal de armadura en cortocircuito:<br><br>
+        <span class="eq">SCR = If,OCC@Vn / If,SCC@Ian</span><br><br>
+        También se puede calcular como: <span class="eq">SCR ≈ 1 / Xs(pu)</span><br><br>
+        <strong>¿Por qué importa?</strong><br>
+        • <strong>SCR alto (>1):</strong> Baja reactancia sincrónica → mejor regulación de tensión → el generador mantiene V<sub>t</sub> estable ante cambios de carga → mejor estabilidad dinámica en la red → pero produce corrientes de cortocircuito mayores.<br>
+        • <strong>SCR bajo (<0.5):</strong> Alta reactancia → peor regulación → más barato de fabricar (menos hierro en el entrehierro) → corrientes de falla más bajas.<br><br>
+        Los generadores hidráulicos típicamente tienen SCR ≈ 1.0–1.5. Los de turbovapor moderno ≈ 0.5–0.8. En la práctica calcularás el SCR de tu máquina y podrás clasificarla.
+      </div>
+    </div>
+
+    <div class="qa-item" data-tags="histéresis que es ciclo ascendente descendente magnetizacion">
+      <div class="qa-q" onclick="toggleQA(this.parentElement)">
+        <span>¿Qué es la histéresis magnética y cómo se observa en la OCC?</span>
+        <span class="qa-tag tag-occ">Histéresis</span>
+        <span class="arrow">▼</span>
+      </div>
+      <div class="qa-a">
+        La histéresis es la "memoria magnética" de los materiales ferromagnéticos. Cuando magnetizas el hierro y luego reduces la corriente de campo, el material no pierde toda su magnetización → el flujo residual hace que la tensión en vacío no vuelva a cero exactamente cuando I<sub>f</sub> = 0.<br><br>
+        En la OCC esto se manifiesta porque:<br>
+        • La curva <strong>ascendente</strong> (subiendo I<sub>f</sub>) está ligeramente <strong>por debajo</strong><br>
+        • La curva <strong>descendente</strong> (bajando I<sub>f</sub>) está ligeramente <strong>por encima</strong><br><br>
+        Forman un lazo cerrado llamado "lazo de histéresis menor". El área del lazo es proporcional a la energía disipada como calor en el núcleo (pérdidas por histéresis).<br><br>
+        El manual indica que la tensión en el eje vertical a I<sub>f</sub> = 0 en la curva descendente es la tensión de remanencia (reminiscencia magnética de la máquina).
+      </div>
+    </div>
+
+    <div class="qa-item" data-tags="ensayo DC resistencia AC diferencia frecuencia impedancia">
+      <div class="qa-q" onclick="toggleQA(this.parentElement)">
+        <span>¿Por qué no podemos medir R<sub>a</sub> aplicando CA directamente al estátor?</span>
+        <span class="qa-tag tag-dc">Ensayo DC</span>
+        <span class="arrow">▼</span>
+      </div>
+      <div class="qa-a">
+        Si aplicaras CA al estátor parado (rotor bloqueado), medirías la impedancia de entrada:<br>
+        <span class="eq">Z_entrada = Ra + j(Xleak + Xar)</span><br><br>
+        Esta impedancia incluye la reactancia de dispersión y la reactancia de reacción de armadura, no solo R<sub>a</sub>. Sería imposible separar R<sub>a</sub> sin cálculos adicionales.<br><br>
+        Con corriente continua, ω = 0, por lo tanto jωL = 0. La <strong>reactancia es cero</strong>. Lo único que se opone al flujo de corriente DC es la resistencia óhmica del bobinado:<br>
+        <span class="eq">R_DC = V_DC / I_DC</span><br><br>
+        Esta es la R<sub>a</sub> verdadera (o R<sub>DC</sub> del campo). Nótese que en operación con CA hay efecto pelicular (skin effect) que hace R<sub>CA</sub> > R<sub>DC</sub>, pero para frecuencias de 60 Hz en máquinas estándar la diferencia es pequeña.
+      </div>
+    </div>
+
+    <div class="qa-item" data-tags="post-lab milimetrado grafica curvas trazar">
+      <div class="qa-q" onclick="toggleQA(this.parentElement)">
+        <span>¿Cómo trazo correctamente las curvas OCC y SCC en el mismo papel milimetrado?</span>
+        <span class="qa-tag tag-occ">Post-Lab</span>
+        <span class="qa-tag tag-scc">Gráfica</span>
+        <span class="arrow">▼</span>
+      </div>
+      <div class="qa-a">
+        El manual indica trazar ambas curvas en el mismo papel con el mismo eje X (I<sub>f</sub>) pero dos ejes Y:<br><br>
+        <strong>Eje X (horizontal):</strong> Corriente de campo I<sub>f</sub> en Amperios. Escala de 0 hasta el máximo medido.<br><br>
+        <strong>Eje Y izquierdo:</strong> Tensión de fase V<sub>φ</sub> en Voltios (para la OCC). Trazar curva ascendente y descendente.<br><br>
+        <strong>Eje Y derecho (o misma escala si I<sub>a,sc</sub> y V<sub>φ</sub> tienen magnitudes similares):</strong> Corriente de armadura I<sub>a</sub> en Amperios (para la SCC). La SCC es una recta.<br><br>
+        <strong>Elementos adicionales que debes dibujar:</strong><br>
+        • La <strong>Air-Gap Line</strong> (línea de aire): la tangente inicial a la OCC. Es una recta que pasa por el origen con la pendiente de la región lineal.<br>
+        • El punto de tensión nominal (V<sub>n</sub>) sobre la OCC. Desde allí, bajar verticalmente hasta la SCC para calcular Z<sub>s</sub> saturado.<br>
+        • El SCR se lee directamente como la relación horizontal entre esos dos puntos.
+      </div>
+    </div>
+
+    <div class="qa-item" data-tags="delta estrella conexion devanado estátor diferencia">
+      <div class="qa-q" onclick="toggleQA(this.parentElement)">
+        <span>El manual dice conectar el estátor en DELTA para el ensayo en vacío. ¿Por qué Δ y no Y?</span>
+        <span class="qa-tag tag-teoria">Conexión</span>
+        <span class="arrow">▼</span>
+      </div>
+      <div class="qa-a">
+        Excelente pregunta. En realidad, el ensayo en vacío puede hacerse con cualquier conexión. El manual especifica Delta (Δ) para esa práctica particular porque:<br><br>
+        1. <strong>Los instrumentos disponibles</strong> en el laboratorio pueden medir la tensión de línea directamente en conexión Δ.<br>
+        2. <strong>No hay corriente circulante en Δ</strong> mientras el generador esté correctamente equilibrado. Si hubiera asimetría, habría una corriente circulante interna, lo cual es una forma de detectar problemas.<br>
+        3. En conexión Δ: <span class="eq">V_linea = V_fase</span>. En conexión Y: <span class="eq">V_linea = √3 · V_fase</span>. Asegúrate de saber cuál estás usando para calcular V<sub>φ</sub> correctamente.<br><br>
+        Para el post-lab, siempre trabaja en valores de <strong>fase</strong> en las fórmulas del circuito equivalente.
+      </div>
+    </div>
+
+    <div class="qa-item" data-tags="placa caracteristica datos nominales generador">
+      <div class="qa-q" onclick="toggleQA(this.parentElement)">
+        <span>¿Qué datos debo leer de la placa de características y para qué los uso?</span>
+        <span class="qa-tag tag-tip">Placa</span>
+        <span class="arrow">▼</span>
+      </div>
+      <div class="qa-a">
+        La placa de características es la "cédula de identidad" de la máquina. Debes anotar:<br><br>
+        • <strong>Potencia aparente S<sub>n</sub></strong> (kVA o VA): capacidad máxima de la máquina.<br>
+        • <strong>Tensión nominal V<sub>n</sub></strong> (V): tensión de línea a plena carga nominal.<br>
+        • <strong>Corriente nominal I<sub>n</sub></strong> (A): corriente de armadura a plena carga.<br>
+        • <strong>Factor de potencia (FP) nominal</strong>: generalmente 0.8 o 0.85 inductivo.<br>
+        • <strong>Frecuencia</strong> (Hz): 60 Hz en Venezuela.<br>
+        • <strong>Velocidad</strong> (rpm): con esto y la frecuencia puedes calcular el número de polos.<br>
+        • <strong>Conexión</strong> (Y o Δ) del estátor.<br>
+        • <strong>Corriente de campo nominal I<sub>f,n</sub></strong>: para saber el rango del reóstato.<br><br>
+        Estos datos son los valores base para calcular los parámetros en por unidad (pu) en el post-lab.
+      </div>
+    </div>
+
+  </div><!-- fin qa-list -->
+</section>
+
+</main>
+
+<!-- ══════════ FOOTER ══════════ -->
+<footer>
+  <p>
+    <strong>Máquinas Eléctricas II · Pre-Laboratorio Práctica N°3</strong><br>
+    Ensayos del Generador Sincrónico<br><br>
+    Diseñado por <strong>Prof. Gereli Gutiérrez</strong> · Departamento de Potencia<br>
+    Escuela de Ingeniería Eléctrica · Facultad de Ingeniería · Universidad del Zulia<br>
+    Maracaibo, Venezuela<br><br>
+    <span style="color:var(--text2); font-size:0.8rem">Referencia teórica: Chapman, S.J. — <em>Máquinas Eléctricas</em>, 5ª edición, Cap. 4–5 · IEEE Std 115</span>
+  </p>
+</footer>
+
+<!-- ══════════ SCRIPTS ══════════ -->
+<script>
+// ── PROGRESS BAR ──
+window.addEventListener('scroll', () => {
+  const el = document.documentElement;
+  const pct = (el.scrollTop / (el.scrollHeight - el.clientHeight)) * 100;
+  document.getElementById('progress-bar').style.width = pct + '%';
+});
+
+// ── NAV ACTIVE ──
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+      const link = document.querySelector(`.nav-link[href="#${e.target.id}"]`);
+      if (link) link.classList.add('active');
+    }
+  });
+}, { rootMargin: '-40% 0px -55% 0px' });
+document.querySelectorAll('section[id]').forEach(s => observer.observe(s));
+
+// ── TABS ──
+function showTab(id, btn) {
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ── QUIZ ──
+function responder(opt, correcto, qid) {
+  const card = opt.closest('.quiz-card');
+  if (card.querySelector('.correct, .wrong')) return; // ya respondido
+  const fb = document.getElementById(qid + '-fb');
+  if (correcto) {
+    opt.classList.add('correct');
+    fb.classList.add('ok', 'show');
+  } else {
+    opt.classList.add('wrong');
+    // marcar correcta
+    const opts = card.querySelectorAll('.quiz-opt');
+    opts.forEach(o => {
+      if (o.getAttribute('onclick').includes('true')) o.classList.add('correct');
+    });
+    fb.classList.add('bad', 'show');
+  }
+}
+
+// ── CALCULATOR ──
+function calcular() {
+  const voc = parseFloat(document.getElementById('voc').value) || 0;
+  const isc = parseFloat(document.getElementById('isc').value) || 0;
+  const vdc = parseFloat(document.getElementById('vdc').value) || 0;
+  const idc = parseFloat(document.getElementById('idc').value) || 0;
+  const frec = parseFloat(document.getElementById('frec').value) || 60;
+  const conn = document.getElementById('conexion').value;
+
+  if (!voc || !isc || !vdc || !idc) {
+    alert('Por favor introduce todos los valores.');
+    return;
+  }
+
+  const vfase = conn === 'Y' ? voc / Math.sqrt(3) : voc;
+  const zs = vfase / isc;
+  const rdc = vdc / idc;
+  const ra = conn === 'Y' ? rdc / 2 : (3 * rdc / 2);
+  const xs = Math.sqrt(Math.max(0, zs * zs - ra * ra));
+  const zspu = zs; // simplificado (sin base)
+
+  const div = document.getElementById('resultado');
+  div.style.display = 'block';
+  div.innerHTML = `
+    <span class="r-label">— Tensión de fase V_φ —</span>
+    V_φ = ${vfase.toFixed(2)} V   ${conn === 'Y' ? '(VL/√3)' : '(= VL en Δ)'}\n
+    <span class="r-label">— Resistencia de armadura Ra —</span>
+    R_DC   = ${rdc.toFixed(4)} Ω
+    R_a    = ${ra.toFixed(4)} Ω   ${conn === 'Y' ? '(R_DC/2 para Y)' : '(3·R_DC/2 para Δ)'}\n
+    <span class="r-label">— Impedancia y reactancia sincrónica —</span>
+    Z_s    = ${zs.toFixed(3)} Ω   (V_φ / I_SC)
+    X_s    = ${xs.toFixed(3)} Ω   (√(Zs² - Ra²))
+    X_s/Z_s = ${((xs/zs)*100).toFixed(1)}%   (¿Ra es despreciable?)\n
+    <span class="r-label">— Verificación de velocidad —</span>
+    Para f = ${frec} Hz, 4 polos → n = ${(120*frec/4).toFixed(0)} rpm
+    Para f = ${frec} Hz, 6 polos → n = ${(120*frec/6).toFixed(0)} rpm
+    Para f = ${frec} Hz, 2 polos → n = ${(120*frec/2).toFixed(0)} rpm
+  `;
+}
+
+// ── OCC CANVAS ──
+(function drawOCC() {
+  const canvas = document.getElementById('occ-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.offsetWidth || 400;
+  const H = 200;
+  canvas.width = W; canvas.height = H;
+  const pad = { t: 20, b: 35, l: 40, r: 20 };
+  const gw = W - pad.l - pad.r;
+  const gh = H - pad.t - pad.b;
+
+  // datos OCC ascendente
+  const occUp = [[0,0],[0.5,40],[1.0,90],[1.5,135],[2.0,168],[2.5,188],[3.0,200],[3.5,208],[4.0,213]];
+  const occDn = [[4.0,213],[3.5,212],[3.0,203],[2.5,195],[2.0,177],[1.5,148],[1.0,102],[0.5,52],[0,8]];
+  const scc   = [[0,0],[0.5,20],[1.0,40],[1.5,60],[2.0,80],[2.5,100],[3.0,120],[3.5,140],[4.0,160]];
+  const airgap= [[0,0],[4.0,225]];
+
+  const maxIf = 4.0, maxV = 230;
+  const toX = v => pad.l + (v/maxIf)*gw;
+  const toY = v => H - pad.b - (v/maxV)*gh;
+
+  // fondo
+  ctx.fillStyle = '#161b22'; ctx.fillRect(0,0,W,H);
+
+  // grid
+  ctx.strokeStyle = 'rgba(48,54,61,0.6)'; ctx.lineWidth = 1;
+  for(let i=0;i<=4;i++){
+    const x=toX(i); ctx.beginPath(); ctx.moveTo(x,pad.t); ctx.lineTo(x,H-pad.b); ctx.stroke();
+  }
+  for(let v=0;v<=220;v+=50){
+    const y=toY(v); ctx.beginPath(); ctx.moveTo(pad.l,y); ctx.lineTo(W-pad.r,y); ctx.stroke();
+  }
+
+  // air-gap line (dashed)
+  ctx.strokeStyle = '#8b949e'; ctx.lineWidth = 1.5; ctx.setLineDash([5,4]);
+  ctx.beginPath(); airgap.forEach((p,i)=>{ i===0?ctx.moveTo(toX(p[0]),toY(p[1])):ctx.lineTo(toX(p[0]),toY(p[1])); }); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // OCC descendente
+  ctx.strokeStyle = 'rgba(63,185,80,0.45)'; ctx.lineWidth = 2.5;
+  ctx.beginPath(); occDn.forEach((p,i)=>{ i===0?ctx.moveTo(toX(p[0]),toY(p[1])):ctx.lineTo(toX(p[0]),toY(p[1])); }); ctx.stroke();
+
+  // OCC ascendente
+  ctx.strokeStyle = '#3fb950'; ctx.lineWidth = 2.5;
+  ctx.beginPath(); occUp.forEach((p,i)=>{ i===0?ctx.moveTo(toX(p[0]),toY(p[1])):ctx.lineTo(toX(p[0]),toY(p[1])); }); ctx.stroke();
+
+  // SCC
+  ctx.strokeStyle = '#58a6ff'; ctx.lineWidth = 2;
+  ctx.beginPath(); scc.forEach((p,i)=>{ i===0?ctx.moveTo(toX(p[0]),toY(p[1]*1.2)):ctx.lineTo(toX(p[0]),toY(p[1]*1.2)); }); ctx.stroke();
+
+  // Etiquetas
+  ctx.fillStyle = '#3fb950'; ctx.font = '10px "Source Sans 3",sans-serif';
+  ctx.fillText('OCC ↑', toX(0.5), toY(55));
+  ctx.fillStyle = 'rgba(63,185,80,0.7)';
+  ctx.fillText('OCC ↓', toX(1.3), toY(128));
+  ctx.fillStyle = '#58a6ff';
+  ctx.fillText('SCC', toX(3.5), toY(165));
+  ctx.fillStyle = '#8b949e';
+  ctx.fillText('Air-gap line', toX(2.5), toY(158));
+
+  // ejes labels
+  ctx.fillStyle = '#8b949e'; ctx.font = '9px "Source Sans 3",sans-serif';
+  ctx.fillText('I_f (A)', W/2, H-5);
+  ctx.save(); ctx.translate(12, H/2); ctx.rotate(-Math.PI/2);
+  ctx.fillText('V_φ / I_a', 0, 0); ctx.restore();
+
+  // tick values X
+  [0,1,2,3,4].forEach(v => { ctx.fillStyle='#8b949e'; ctx.fillText(v, toX(v)-4, H-pad.b+12); });
+})();
+
+// ── Q&A TOGGLE ──
+function toggleQA(item) {
+  const wasOpen = item.classList.contains('open');
+  document.querySelectorAll('.qa-item.open').forEach(i => i.classList.remove('open'));
+  if (!wasOpen) item.classList.add('open');
+}
+
+// ── Q&A SEARCH ──
+function filtrarQA(q) {
+  const term = q.toLowerCase().trim();
+  document.querySelectorAll('.qa-item').forEach(item => {
+    const text = (item.dataset.tags + ' ' + item.querySelector('.qa-q').textContent).toLowerCase();
+    item.classList.toggle('hidden', term.length > 1 && !text.includes(term));
+  });
+}
+</script>
+</body>
+</html>
